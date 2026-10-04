@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "daladez_fps",
+  "version": "${version}",
+  "name": "Daladez FPS",
+  "description": "Auto-tunes video settings in real time to keep your FPS at your target on low-end PCs.",
+  "authors": ["Daladez"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.daladez.fps.DaladezFpsClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
