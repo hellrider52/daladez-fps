@@ -1,25 +1,24 @@
 package com.daladez.fps;
 
 import net.minecraft.client.CloudStatus;
-import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.ParticleStatus;
 import net.minecraft.network.chat.Component;
 
 /**
  * Uses only vanilla Options (no mixins), so it can't clash with Sodium, Lithium, Iris, etc.
  */
 public final class FpsTuner {
-    private record Preset(String name, int render, int sim, double entity, ParticleStatus particles,
-                          CloudStatus clouds, boolean ao, boolean shadows, int blend, GraphicsStatus gfx) {}
+    // particles: 0 = all, 1 = decreased, 2 = minimal
+    private record Preset(String name, int render, int sim, double entity, int particles,
+                          CloudStatus clouds, boolean ao, boolean shadows, int blend) {}
 
     // Tuned for integrated graphics / old dual-core CPUs.
     private static final Preset[] PRESETS = {
-        new Preset("Balanced", 8, 6, 0.8, ParticleStatus.DECREASED, CloudStatus.OFF, false, true,  1, GraphicsStatus.FAST),
-        new Preset("Low",      6, 5, 0.6, ParticleStatus.DECREASED, CloudStatus.OFF, false, false, 0, GraphicsStatus.FAST),
-        new Preset("Potato",   4, 5, 0.5, ParticleStatus.MINIMAL,   CloudStatus.OFF, false, false, 0, GraphicsStatus.FAST),
-        new Preset("Boom",     3, 5, 0.5, ParticleStatus.MINIMAL,   CloudStatus.OFF, false, false, 0, GraphicsStatus.FAST),
+        new Preset("Balanced", 8, 6, 0.8, 1, CloudStatus.OFF, false, true,  1),
+        new Preset("Low",      6, 5, 0.6, 1, CloudStatus.OFF, false, false, 0),
+        new Preset("Potato",   4, 5, 0.5, 2, CloudStatus.OFF, false, false, 0),
+        new Preset("Boom",     3, 5, 0.5, 2, CloudStatus.OFF, false, false, 0),
     };
     public static final int LEVEL_COUNT = PRESETS.length;
 
@@ -163,15 +162,18 @@ public final class FpsTuner {
             o.entityDistanceScaling().set(l.entity());
         }
         if (c.manageEffects) {
-            o.particles().set(l.particles());
+            o.particles().set(pick(o.particles().get(), l.particles()));
             o.cloudStatus().set(l.clouds());
             o.ambientOcclusion().set(l.ao());
             o.entityShadows().set(l.shadows());
             o.biomeBlendRadius().set(l.blend());
         }
-        if (c.manageGraphicsMode) {
-            o.graphicsMode().set(l.gfx());
-        }
+    }
+
+    /** Picks an enum constant by position without naming its class (names moved around in 1.21.11). */
+    private static <E extends Enum<E>> E pick(E current, int ordinal) {
+        E[] all = current.getDeclaringClass().getEnumConstants();
+        return all[Math.max(0, Math.min(ordinal, all.length - 1))];
     }
 
     private static void notify(Minecraft mc, String msg) {
